@@ -7,7 +7,7 @@
 OPTIMISE  = -O2
 WARNINGS  = -Wall -Wextra -Wno-variadic-macros -Wno-overlength-strings -pedantic
 CFLAGS    = $(DEBUG) $(OPTIMISE) $(WARNINGS)
-LDLIBS    =
+LDLIBS    = 
 
 # commands
 CC        = clang
@@ -20,12 +20,13 @@ OBJS=$(SRCS:src/%.c=obj/%.o)
 
 EXECUTABLE = obj/emulator 
 
-all: compile
+all: clean compile run
 
 compile: $(OBJS)
 	$(COMPILE) -o $(EXECUTABLE) $(OBJS)
 
 run: 
+	@echo Running...
 	@./$(EXECUTABLE)
 
 obj/%.o: src/%.c | obj 
@@ -37,4 +38,3 @@ obj:
 clean:
 	rm -f obj/*.o
 	rm ${EXECUTABLE} 
-	rmdir obj 
