@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
+#include <unistd.h>
 
 const int MEM_SIZE = 4096;
 uint8_t *memory;
@@ -27,9 +29,6 @@ const uint8_t fontset[FONT_COUNT] = {   0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
                                         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
                                     };
 
-void init_memory();
-void init_registers();
-void load_font();
 
 typedef struct stack_entry Stack_entry;
 struct stack_entry {
@@ -42,12 +41,42 @@ Stack_entry *stack;
 void push(uint16_t value);
 uint16_t pop();
 
+const uint8_t SOUND_TIMER = 60;
+uint8_t st = SOUND_TIMER;
+
+const uint8_t DELAY_TIMER = 60;
+uint8_t dt = DELAY_TIMER;
+
+const uint8_t CLOCK_RATE = 500;
+double start_time = 0;
+
+const uint8_t REFRESH_RATE = 60;
+const uint8_t refresh_register = REFRESH_RATE;
+
+uint16_t pc = 512; // Start of program memory
+
+int display_update = 0;
+
+void init_memory();
+void init_registers();
+void load_font();
+int cpu_tick();
+void inc_pc();
+void execute_next();
+
 int main(int argc, char *argv[]) {
     init_memory();
     init_registers();
 
     load_font();
 
+    while (1)
+    {
+        if (cpu_tick()) {
+            execute_next();
+        }
+    }
+    
     return EXIT_SUCCESS;
 }
 
@@ -106,4 +135,29 @@ uint16_t pop() {
 
     stack_size--;   
     return value; 
+}
+
+int cpu_tick() {
+    double now = clock()/CLOCKS_PER_SEC;
+    double elapsed = now - start_time;
+
+    if (!start_time || elapsed >= (1/CLOCK_RATE)) {
+        start_time = now;
+        return 1;
+    } else {
+        struct timespec delay;
+        delay.tv_sec = 0;
+        delay.tv_nsec = ((1/CLOCK_RATE) - elapsed) * 1000000000;
+
+        while (nanosleep(&delay, &delay));
+        return 0;
+    }
+}
+
+void execute_next() {
+
+}
+
+void inc_pc() {
+    pc += 2;
 }
