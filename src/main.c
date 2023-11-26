@@ -42,13 +42,15 @@ void push(uint16_t value);
 uint16_t pop();
 
 const uint8_t SOUND_TIMER = 60;
-uint8_t st = SOUND_TIMER;
+uint8_t sound_timer = SOUND_TIMER;
+double start_time_sound; // Set when sound timer started
 
 const uint8_t DELAY_TIMER = 60;
-uint8_t dt = DELAY_TIMER;
+uint8_t delay_timer = DELAY_TIMER;
+double start_time_delay; // Set when delay timer started
 
 const uint8_t CLOCK_RATE = 500;
-double start_time = 0;
+double start_time_clock = 0; 
 
 const uint8_t REFRESH_RATE = 60;
 const uint8_t refresh_register = REFRESH_RATE;
@@ -72,6 +74,14 @@ int main(int argc, char *argv[]) {
 
     while (1)
     {
+        if (sound_timer) {
+            dec_sound_timer();
+        } 
+
+        if (delay_timer) {
+            dec_delay_timer();
+        }
+
         if (cpu_tick()) {
             execute_next();
         }
@@ -139,10 +149,10 @@ uint16_t pop() {
 
 int cpu_tick() {
     double now = clock()/CLOCKS_PER_SEC;
-    double elapsed = now - start_time;
+    double elapsed = now - start_time_clock;
 
-    if (!start_time || elapsed >= (1/CLOCK_RATE)) {
-        start_time = now;
+    if (!start_time_clock || elapsed >= (1/CLOCK_RATE)) {
+        start_time_clock = now;
         return 1;
     } else {
         struct timespec delay;
@@ -152,6 +162,32 @@ int cpu_tick() {
         while (nanosleep(&delay, &delay));
         return 0;
     }
+}
+
+int dec_sound_timer() {
+    double now = clock()/CLOCKS_PER_SEC;
+    double elapsed = now - start_time_sound;
+
+    if (elapsed >= (1/SOUND_TIMER)) {
+        start_time_sound = now;
+        sound_timer--;
+
+        beep();
+    }
+}
+
+int dec_delay_timer() {
+    double now = clock()/CLOCKS_PER_SEC;
+    double elapsed = now - start_time_delay;
+
+    if (elapsed >= (1/DELAY_TIMER)) {
+        start_time_delay = now;
+        delay_timer--;
+    }
+}
+
+void beep() {
+    printf("\a");
 }
 
 void execute_next() {
