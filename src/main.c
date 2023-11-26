@@ -49,7 +49,7 @@ const uint8_t DELAY_TIMER = 60;
 uint8_t delay_timer = DELAY_TIMER;
 double start_time_delay; // Set when delay timer started
 
-const uint8_t CLOCK_RATE = 500;
+const int CLOCK_RATE = 500;
 double start_time_clock = 0; 
 
 const uint8_t REFRESH_RATE = 60;
@@ -57,7 +57,7 @@ const uint8_t refresh_register = REFRESH_RATE;
 
 uint16_t pc = 512; // Start of program memory
 
-int display_update = 0;
+int refresh_display = 0;
 
 void init_memory();
 void init_registers();
@@ -65,6 +65,9 @@ void load_font();
 int cpu_tick();
 void inc_pc();
 void execute_next();
+void dec_sound_timer();
+void dec_delay_timer();
+void beep();
 
 int main(int argc, char *argv[]) {
     init_memory();
@@ -164,7 +167,7 @@ int cpu_tick() {
     }
 }
 
-int dec_sound_timer() {
+void dec_sound_timer() {
     double now = clock()/CLOCKS_PER_SEC;
     double elapsed = now - start_time_sound;
 
@@ -176,7 +179,7 @@ int dec_sound_timer() {
     }
 }
 
-int dec_delay_timer() {
+void dec_delay_timer() {
     double now = clock()/CLOCKS_PER_SEC;
     double elapsed = now - start_time_delay;
 
@@ -188,6 +191,7 @@ int dec_delay_timer() {
 
 void beep() {
     printf("\a");
+    fflush(stdout);
 }
 
 void execute_next() {
